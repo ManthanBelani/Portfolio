@@ -141,7 +141,7 @@ class _ProfileImageWidget extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Image.asset(
-          'my_image.png',
+          'assets/my_image.png',
           width: 280,
           height: 350,
           fit: BoxFit.cover,
