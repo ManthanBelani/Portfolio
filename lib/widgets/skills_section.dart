@@ -12,8 +12,6 @@ class SkillsSection extends StatelessWidget {
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
     
-    int crossAxisCount = isMobile ? 1 : isTablet ? 2 : 3;
-    
     return Container(
       width: double.infinity,
       padding: Responsive.screenPadding(context),
@@ -26,25 +24,42 @@ class SkillsSection extends StatelessWidget {
               const SizedBox(height: 80),
               const SectionTitle(number: '03.', title: 'Skills'),
               const SizedBox(height: 40),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 24,
-                  mainAxisSpacing: 24,
-                  childAspectRatio: isMobile ? 2.2 : 1.8,
-                ),
-                itemCount: SkillData.skillCategories.length,
-                itemBuilder: (context, index) {
-                  return _SkillCard(category: SkillData.skillCategories[index]);
-                },
-              ),
+              isMobile
+                  ? _buildMobileSkills()
+                  : _buildGridSkills(isTablet ? 2 : 3, isMobile),
               const SizedBox(height: 40),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMobileSkills() {
+    return Column(
+      children: SkillData.skillCategories
+          .map((category) => Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: _SkillCard(category: category),
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildGridSkills(int crossAxisCount, bool isMobile) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 24,
+        mainAxisSpacing: 24,
+        childAspectRatio: 1.8,
+      ),
+      itemCount: SkillData.skillCategories.length,
+      itemBuilder: (context, index) {
+        return _SkillCard(category: SkillData.skillCategories[index]);
+      },
     );
   }
 }
@@ -91,6 +106,7 @@ class _SkillCardState extends State<_SkillCard> {
             : Matrix4.identity(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
@@ -100,25 +116,25 @@ class _SkillCardState extends State<_SkillCard> {
                   size: 24,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  widget.category.title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    widget.category.title,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Expanded(
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: widget.category.skills
-                    .map((skill) => _SkillChip(skill: skill))
-                    .toList(),
-              ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: widget.category.skills
+                  .map((skill) => _SkillChip(skill: skill))
+                  .toList(),
             ),
           ],
         ),

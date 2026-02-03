@@ -115,6 +115,11 @@ class _FeaturedProjectCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _MobileProjectImage(
+            title: project.title,
+            imagePaths: project.imagePaths,
+          ),
+          const SizedBox(height: 20),
           const Text(
             'Featured Project',
             style: TextStyle(
@@ -160,6 +165,35 @@ class _FeaturedProjectCard extends StatelessWidget {
                 )
                 .toList(),
           ),
+          if (project.githubUrl != null) ...[
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () async {
+                final url = Uri.parse(project.githubUrl!);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Row(
+                children: [
+                  const FaIcon(
+                    FontAwesomeIcons.github,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'View on GitHub',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -616,3 +650,182 @@ class _OtherProjectCardState extends State<_OtherProjectCard> {
     );
   }
 }
+
+class _MobileProjectImage extends StatefulWidget {
+  final String title;
+  final List<String> imagePaths;
+
+  const _MobileProjectImage({
+    required this.title,
+    required this.imagePaths,
+  });
+
+  @override
+  State<_MobileProjectImage> createState() => _MobileProjectImageState();
+}
+
+class _MobileProjectImageState extends State<_MobileProjectImage> {
+  int _currentImageIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasImages = widget.imagePaths.isNotEmpty;
+
+    return Container(
+      height: 220,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          color: AppColors.backgroundLight,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (hasImages)
+                Center(
+                  child: Image.asset(
+                    widget.imagePaths[_currentImageIndex],
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              if (!hasImages)
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.15),
+                        AppColors.backgroundLight.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.phone_android,
+                          size: 60,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            widget.title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              // Tint overlay
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                ),
+              ),
+              // Navigation and indicators for multiple images
+              if (hasImages && widget.imagePaths.length > 1) ...[
+                // Left arrow
+                Positioned(
+                  left: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _currentImageIndex = (_currentImageIndex - 1 + widget.imagePaths.length) %
+                                widget.imagePaths.length;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                // Right arrow
+                Positioned(
+                  right: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _currentImageIndex =
+                                (_currentImageIndex + 1) % widget.imagePaths.length;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                // Dots indicator
+                Positioned(
+                  bottom: 12,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      widget.imagePaths.length,
+                      (index) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _currentImageIndex == index
+                              ? AppColors.primary
+                              : Colors.white.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
